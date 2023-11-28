@@ -8,8 +8,7 @@
     "generate": "./index.ts"
   },
   "scripts": {
-    "generate": "tsx index.ts",
-    "prepare": "npm i"
+    "generate": "tsx index.ts"
   },
   "keywords": [],
   "author": "",
