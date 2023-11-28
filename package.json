@@ -5,7 +5,8 @@
   "type": "module",
   "main": "index.ts",
   "bin": {
-    "generate": "./index.ts"
+    "generate": "./index.ts",
+    "prepare": "npm i"
   },
   "scripts": {
     "generate": "tsx index.ts"
