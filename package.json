@@ -5,11 +5,11 @@
   "type": "module",
   "main": "index.ts",
   "bin": {
-    "generate": "./index.ts",
-    "prepare": "npm i"
+    "generate": "./index.ts"
   },
   "scripts": {
-    "generate": "tsx index.ts"
+    "generate": "tsx index.ts",
+    "prepare": "npm i"
   },
   "keywords": [],
   "author": "",
