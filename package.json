@@ -4,6 +4,9 @@
   "description": "",
   "type": "module",
   "main": "index.ts",
+  "bin": {
+    "generate": "./index.ts"
+  },
   "scripts": {
     "generate": "tsx index.ts"
   },
