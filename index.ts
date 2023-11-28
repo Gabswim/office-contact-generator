@@ -1,3 +1,4 @@
+#!/usr/bin/env tsx
 import { generateCSV, getUserInput } from "./util";
 
 const userInput = await getUserInput();
