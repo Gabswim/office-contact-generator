@@ -5,7 +5,69 @@ import { question } from "zx";
 
 const NUMBER_OF_ROWS_DEFAULT = 10_000;
 const OUTPUT_FILE_DEFAULT = "random_contacts.csv";
-
+const HEADERS = [
+  "First Name",
+  "Middle Name",
+  "Last Name",
+  "Title",
+  "Suffix",
+  "Nickname",
+  "Given Yomi",
+  "Surname Yomi",
+  "E-mail Address",
+  "E-mail 2 Address",
+  "E-mail 3 Address",
+  "Home Phone",
+  "Home Phone 2",
+  "Business Phone",
+  "Business Phone 2",
+  "Mobile Phone",
+  "Car Phone",
+  "Other Phone",
+  "Primary Phone",
+  "Pager",
+  "Business Fax",
+  "Home Fax",
+  "Other Fax",
+  "Company Main Phone",
+  "Callback",
+  "Radio Phone",
+  "Telex",
+  "TTY/TDD Phone",
+  "IMAddress",
+  "Job Title",
+  "Department",
+  "Company",
+  "Office Location",
+  "Manager's Name",
+  "Assistant's Name",
+  "Assistant's Phone",
+  "Company Yomi",
+  "Business Street",
+  "Business City",
+  "Business State",
+  "Business Postal Code",
+  "Business Country/Region",
+  "Home Street",
+  "Home City",
+  "Home State",
+  "Home Postal Code",
+  "Home Country/Region",
+  "Other Street",
+  "Other City",
+  "Other State",
+  "Other Postal Code",
+  "Other Country/Region",
+  "Personal Web Page",
+  "Spouse",
+  "Schools",
+  "Hobby",
+  "Location",
+  "Web Page",
+  "Birthday",
+  "Anniversary",
+  "Notes",
+];
 export const userInputSchema = z.object({
   numberOfRows: z.coerce.number().optional().default(10_000),
   email: z.string().email(),
@@ -161,10 +223,15 @@ export const generateRandomData = ({
   return data;
 };
 
-export const generateCSV = async ({ numberOfRows, email, outputFile }: UserInput) => {
+export const generateCSV = async ({
+  numberOfRows,
+  email,
+  outputFile,
+}: UserInput) => {
   try {
     const csvWriter = createArrayCsvWriter({
       path: outputFile,
+      header: HEADERS,
     });
 
     const randomData = generateRandomData({ numberOfRows, email });
@@ -184,9 +251,10 @@ export const getUserInput = async () => {
   const outputFileAnswer = await question(
     `Output file name: (default: ${OUTPUT_FILE_DEFAULT}) `
   );
+
   return userInputSchema.parse({
-    numberOfRows: numberOfRowsAnswer,
+    numberOfRows: numberOfRowsAnswer === "" ? undefined : numberOfRowsAnswer,
     email: emailAnswer,
-    outputFile: outputFileAnswer,
+    outputFile: outputFileAnswer === "" ? undefined : outputFileAnswer,
   });
 };
