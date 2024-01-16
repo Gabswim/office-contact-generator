@@ -1,80 +1,30 @@
 import { faker } from "@faker-js/faker";
-import { createArrayCsvWriter } from "csv-writer";
 import { z } from "zod";
 import { question } from "zx";
+import { OutlookCsvGenerator } from "./outlook";
+import { CsvGenerator } from "./CsvGenerator";
+import { GotoCsvGenerator } from "./goto";
 
 const NUMBER_OF_ROWS_DEFAULT = 10_000;
 const OUTPUT_FILE_DEFAULT = "random_contacts.csv";
-const HEADERS = [
-  "First Name",
-  "Middle Name",
-  "Last Name",
-  "Title",
-  "Suffix",
-  "Nickname",
-  "Given Yomi",
-  "Surname Yomi",
-  "E-mail Address",
-  "E-mail 2 Address",
-  "E-mail 3 Address",
-  "Home Phone",
-  "Home Phone 2",
-  "Business Phone",
-  "Business Phone 2",
-  "Mobile Phone",
-  "Car Phone",
-  "Other Phone",
-  "Primary Phone",
-  "Pager",
-  "Business Fax",
-  "Home Fax",
-  "Other Fax",
-  "Company Main Phone",
-  "Callback",
-  "Radio Phone",
-  "Telex",
-  "TTY/TDD Phone",
-  "IMAddress",
-  "Job Title",
-  "Department",
-  "Company",
-  "Office Location",
-  "Manager's Name",
-  "Assistant's Name",
-  "Assistant's Phone",
-  "Company Yomi",
-  "Business Street",
-  "Business City",
-  "Business State",
-  "Business Postal Code",
-  "Business Country/Region",
-  "Home Street",
-  "Home City",
-  "Home State",
-  "Home Postal Code",
-  "Home Country/Region",
-  "Other Street",
-  "Other City",
-  "Other State",
-  "Other Postal Code",
-  "Other Country/Region",
-  "Personal Web Page",
-  "Spouse",
-  "Schools",
-  "Hobby",
-  "Location",
-  "Web Page",
-  "Birthday",
-  "Anniversary",
-  "Notes",
-];
+
+const TYPES_OF_CSV = ["outlook", "goto"] as const;
+const TYPE_OF_CSV_DEFAULT = TYPES_OF_CSV[0];
+
 export const userInputSchema = z.object({
   numberOfRows: z.coerce.number().optional().default(10_000),
   email: z.string().email(),
   outputFile: z.string().optional().default(OUTPUT_FILE_DEFAULT),
+  typeOfCsv: z.enum(TYPES_OF_CSV).default(TYPE_OF_CSV_DEFAULT),
 });
 
 export type UserInput = z.infer<typeof userInputSchema>;
+export type UserInputOutlookOnly = Omit<UserInput, "typeOfCsv"> & {
+  typeOfCsv: "outlook";
+};
+export type UserInputGotoOnly = Omit<UserInput, "typeOfCsv"> & {
+  typeOfCsv: "goto";
+};
 
 export const generateEmailAliases = (email: string, n: number) => {
   const [username, domain] = email.split("@");
@@ -227,34 +177,50 @@ export const generateCSV = async ({
   numberOfRows,
   email,
   outputFile,
+  typeOfCsv,
 }: UserInput) => {
   try {
-    const csvWriter = createArrayCsvWriter({
-      path: outputFile,
-      header: HEADERS,
-    });
+    const csvGenerator = getCsvGenerator(typeOfCsv);
 
-    const randomData = generateRandomData({ numberOfRows, email });
-
-    await csvWriter.writeRecords(randomData);
+    await csvGenerator.generateCSVAndSave({ numberOfRows, email, outputFile });
     console.log("Finish writing csv file.");
   } catch (error) {
     console.log("Error writing csv file.");
   }
 };
 
+const getCsvGenerator = (typeOfCsv: UserInput["typeOfCsv"]): CsvGenerator => {
+  switch (typeOfCsv) {
+    case "outlook":
+      return new OutlookCsvGenerator();
+    case "goto":
+      return new GotoCsvGenerator();
+    default:
+      assertNever(typeOfCsv);
+      throw new Error("Unexpected typeOfCsv");
+  }
+};
+
 export const getUserInput = async () => {
   const numberOfRowsAnswer = await question(
-    `Number of rows to generate: (default: ${NUMBER_OF_ROWS_DEFAULT}) `
+    `Number of rows to generate (default: ${NUMBER_OF_ROWS_DEFAULT}): `
   );
   const emailAnswer = await question("Email address for the contact: ");
   const outputFileAnswer = await question(
-    `Output file name: (default: ${OUTPUT_FILE_DEFAULT}) `
+    `Output file name (default: ${OUTPUT_FILE_DEFAULT}): `
+  );
+  const typeOfCsvAnswer = await question(
+    `Type of CSV (${TYPES_OF_CSV.join(', ')}) (default: ${TYPE_OF_CSV_DEFAULT}): `
   );
 
   return userInputSchema.parse({
     numberOfRows: numberOfRowsAnswer === "" ? undefined : numberOfRowsAnswer,
     email: emailAnswer,
     outputFile: outputFileAnswer === "" ? undefined : outputFileAnswer,
+    typeOfCsv: typeOfCsvAnswer === "" ? undefined : typeOfCsvAnswer,
   });
+};
+
+const assertNever = (x: never): never => {
+  throw new Error("Unexpected object: " + x);
 };
